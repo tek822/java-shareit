@@ -20,7 +20,7 @@ public class UserInMemoryRepositoryImpl implements UserRepository {
     private final HashMap<String, Long> emails = new HashMap<>();
 
     @Override
-    public User add(@Valid User user) {
+    public User add(User user) {
         String email = user.getEmail();
         if (emails.containsKey(email)) {
             throw new UserEmailAlreadyExists("Email " + email + " уже используется");
