@@ -9,9 +9,6 @@ import ru.practicum.shareit.user.service.UserServiceImpl;
 import javax.validation.Valid;
 import java.util.Collection;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Slf4j
 @RestController
 @RequestMapping(path = "/users")
@@ -21,27 +18,32 @@ public class UserController {
 
     @PostMapping
     public UserDto userCreate(@Valid @RequestBody UserDto userDto) {
+        log.info("POST запрос для user: {}", userDto);
         return userService.add(userDto);
     }
 
     @PatchMapping("/{id}")
     public UserDto userUpdate(@PathVariable long id, @RequestBody UserDto userDto) {
+        log.info("PATCH запрос для id: {}, user: {}", id, userDto);
         userDto.setId(id);
         return userService.update(userDto);
     }
 
     @GetMapping("/{id}")
     UserDto userGet(@PathVariable long id) {
+        log.info("GET запрос для id: {}", id);
         return userService.get(id);
     }
 
     @GetMapping
     Collection<UserDto> usersGet() {
+        log.info("GET запрос для all users");
         return userService.getAll();
     }
 
     @DeleteMapping("/{id}")
     UserDto userDelete(@PathVariable long id) {
+        log.info("DELETE запрос для user c id: {}", id);
         return userService.remove(id);
     }
 }

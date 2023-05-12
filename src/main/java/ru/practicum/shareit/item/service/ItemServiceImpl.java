@@ -32,6 +32,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = modelMapper.map(itemDto, Item.class);
         item.setOwner(user);
         long itemId = itemRepository.add(item).getId();
+        log.info("uid: {}, добавил item с id: {}", userId, itemId);
         itemDto.setId(itemId);
         return itemDto;
     }
@@ -46,6 +47,7 @@ public class ItemServiceImpl implements ItemService {
         }
         Item update = modelMapper.map(itemDto, Item.class);
         modelMapper.map(update, item);
+        log.info("uid: {}, обновил item с id: {}", userId, itemDto.getId());
         return modelMapper.map(itemRepository.update(item), ItemDto.class);
     }
 
@@ -57,6 +59,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Collection<ItemDto> getAll(long userId) {
         User user = userRepository.get(userId);
+        log.info("Запрошены items пользователя с uid: {}", userId);
         return itemRepository.getAll(userId).stream()
                 .map(i -> modelMapper.map(i, ItemDto.class))
                 .collect(Collectors.toList());
@@ -64,10 +67,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> findAvailable(String text) {
+        log.info("Поиск предметов со строкой: {}", text);
         if (text == null || text.isBlank()) {
             return new ArrayList<>();
         }
-        return itemRepository.search(text).stream()
+        return itemRepository.search(text.toLowerCase()).stream()
                 .filter(i -> ((i.getAvailable() != null) && i.getAvailable()))
                 .map(i -> modelMapper.map(i, ItemDto.class))
                 .collect(Collectors.toList());

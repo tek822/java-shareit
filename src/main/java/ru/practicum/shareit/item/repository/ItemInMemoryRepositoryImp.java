@@ -2,9 +2,11 @@ package ru.practicum.shareit.item.repository;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
+import javax.validation.Valid;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Repository("ItemInMemoryRepository")
+@Validated
 public class ItemInMemoryRepositoryImp implements ItemRepository {
     long nextId = 1;
     private final Map<Long, Item> items = new HashMap<>();
@@ -25,7 +28,7 @@ public class ItemInMemoryRepositoryImp implements ItemRepository {
     }
 
     @Override
-    public Item update(Item item) {
+    public Item update(@Valid Item item) {
         long itemId = item.getId();
         if (!items.containsKey(itemId)) {
             throw new ItemNotFoundException("Предмет с id = " + itemId + " не найден");
@@ -52,8 +55,8 @@ public class ItemInMemoryRepositoryImp implements ItemRepository {
     @Override
     public Collection<Item> search(String text) {
         return items.values().stream()
-                .filter(i -> (i.getName().toLowerCase().contains(text.toLowerCase())
-                        || i.getDescription().toLowerCase().contains(text.toLowerCase())))
+                .filter(i -> (i.getName().toLowerCase().contains(text)
+                        || i.getDescription().toLowerCase().contains(text)))
                 .collect(Collectors.toList());
     }
 

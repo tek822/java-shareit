@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.repository;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.exception.UserEmailAlreadyExists;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 
 @Slf4j
 @Repository("InMemoryUserRepository")
+@Validated
 public class UserInMemoryRepositoryImpl implements UserRepository {
     private long nextId = 1;
     private final HashMap<Long, User> users = new HashMap<>();
