@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -23,6 +24,14 @@ public class ItemController {
         return itemService.add(userId, itemDto);
     }
 
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@PathVariable long itemId,
+                          @RequestHeader("X-Sharer-User-Id") long userId,
+                          @Valid @RequestBody CommentDto commentDto) {
+        log.info("POST запрос для id: {}, comment: {}", userId, commentDto);
+        return itemService.addComment(itemId, userId, commentDto);
+    }
+
     @PatchMapping("/{itemId}")
     public ItemDto updateItem(@PathVariable long itemId,
                               @RequestHeader("X-Sharer-User-Id") long userId,
@@ -33,9 +42,10 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItem(@PathVariable long itemId) {
-        log.info("GET запрос для itemId: {}", itemId);
-        return itemService.get(itemId);
+    public ItemDto getItem(@PathVariable long itemId,
+                           @RequestHeader("X-Sharer-User-Id") long userId) {
+        log.info("GET запрос для itemId: {}, от userId: {}", itemId, userId);
+        return itemService.get(itemId, userId);
     }
 
     @GetMapping

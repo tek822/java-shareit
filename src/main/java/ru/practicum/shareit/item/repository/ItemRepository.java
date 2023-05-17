@@ -1,23 +1,16 @@
 package ru.practicum.shareit.item.repository;
 
-import org.springframework.validation.annotation.Validated;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.item.model.Item;
 
-import javax.validation.Valid;
-import java.util.Collection;
+import java.util.List;
 
-@Validated
-public interface ItemRepository {
 
-    Item add(Item item);
+public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    Item update(@Valid Item item);
+    @Query("select item from Item as item join item.owner as u where u.id = ?1")
+    List<Item> findAllByUserId(long userID);
 
-    Item get(long id);
-
-    Collection<Item> getAll(long userId);
-
-    Collection<Item> search(String text);
-
-    long size();
+    List<Item> findAllByDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(String text1, String text2);
 }
