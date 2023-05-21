@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
@@ -68,6 +69,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ItemDto get(long itemId, long userId) {
         Item item = getItem(itemRepository, itemId);
         ItemDto itemDto = modelMapper.map(item, ItemDto.class);
@@ -80,6 +82,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<ItemDto> getAll(long userId) {
         User user = getUser(userRepository, userId);
         log.info("Запрошены предметы пользователя с id: {}", userId);
@@ -93,6 +96,7 @@ public class ItemServiceImpl implements ItemService {
         return items;
     }
 
+    @Transactional(readOnly = true)
     private void getBookingForItem(ItemDto item) {
         List<Booking> itemBookings = bookingRepository.findAllByItemId(item.getId());
         LocalDateTime now = LocalDateTime.now();
@@ -107,6 +111,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<ItemDto> findAvailable(String text) {
         log.info("Поиск предметов со строкой: {}", text);
         if (text == null || text.isBlank()) {
@@ -145,6 +150,7 @@ public class ItemServiceImpl implements ItemService {
         return modelMapper.map(comment, CommentDto.class);
     }
 
+    @Transactional(readOnly = true)
     private void getCommentsForItem(ItemDto itemDto) {
         List<Comment> comments = commentRepository.findAllByItemId(itemDto.getId());
         itemDto.setComments(

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingState;
@@ -81,6 +82,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookingDto get(long bookingId, long userId) {
         Booking booking = getBooking(bookingRepository, bookingId);
         User user = getUser(userRepository, userId);
@@ -95,6 +97,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingDto> getOwnBookings(long userId, String state) {
         BookingState bookingState = getState(state);
         User user = getUser(userRepository, userId);
@@ -110,6 +113,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingDto> getBookingsForOwnItems(long userId, String state) {
         BookingState bookingState = getState(state);
         User user = getUser(userRepository, userId);
