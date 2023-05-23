@@ -21,9 +21,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.util.Util.getItem;
@@ -86,14 +84,37 @@ public class ItemServiceImpl implements ItemService {
     public Collection<ItemDto> getAll(long userId) {
         User user = getUser(userRepository, userId);
         log.info("Запрошены предметы пользователя с id: {}", userId);
-        List<ItemDto> items = itemRepository.findAllByUserId(userId).stream()
-                .map(i -> modelMapper.map(i, ItemDto.class))
-                .collect(Collectors.toList());
-        for (ItemDto item : items) {
-            getBookingForItem(item);
-            getCommentsForItem(item);
+        Map<Long, ItemDto> itemDtos = new HashMap<>();
+        for (Item item : itemRepository.findAllByUserId(userId)) {
+            itemDtos.put(item.getId(), modelMapper.map(item, ItemDto.class));
         }
-        return items;
+        List<Booking> bookings = bookingRepository.findAllByItemIdIn(itemDtos.keySet());
+        List<Comment> comments = commentRepository.findAllByItemIdIn(itemDtos.keySet());
+        LocalDateTime now = LocalDateTime.now();
+        for (Booking booking : bookings) {
+            Long itemId = booking.getItem().getId();
+            ItemDto itemDto = itemDtos.get(itemId);
+            BookingSimpleDto lastBooking = itemDto.getLastBooking();
+            BookingSimpleDto nextBooking = itemDto.getNextBooking();
+            if (booking.getStart().isBefore(now)
+                    && (lastBooking == null || lastBooking.getStart().isBefore(booking.getStart()))) {
+                    itemDto.setLastBooking(modelMapper.map(booking, BookingSimpleDto.class));
+            }
+            if (booking.getStart().isAfter(now)
+                    && (nextBooking == null || nextBooking.getStart().isAfter(booking.getStart()))) {
+                itemDto.setNextBooking(modelMapper.map(booking, BookingSimpleDto.class));
+            }
+        }
+        for (Comment comment : comments) {
+            Long itemId = comment.getItem().getId();
+            ItemDto itemDto = itemDtos.get(itemId);
+            List<CommentDto> itemDtoComments = itemDto.getComments();
+            if (itemDtoComments == null) {
+                itemDtoComments = new ArrayList<>();
+            }
+            itemDtoComments.add(modelMapper.map(comment, CommentDto.class));
+        }
+        return itemDtos.values();
     }
 
     @Transactional(readOnly = true)

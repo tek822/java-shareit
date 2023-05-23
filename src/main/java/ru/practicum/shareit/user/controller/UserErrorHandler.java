@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
-public class UserErrorHadler {
+public class UserErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)

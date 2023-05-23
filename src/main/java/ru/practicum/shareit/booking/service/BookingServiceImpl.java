@@ -18,10 +18,9 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static ru.practicum.shareit.booking.dto.BookingValidator.isValid;
 import static ru.practicum.shareit.util.Util.*;
@@ -88,10 +87,10 @@ public class BookingServiceImpl implements BookingService {
         User user = getUser(userRepository, userId);
 
         if (userId == booking.getBooker().getId() || userId == booking.getItem().getOwner().getId()) {
-            log.info("Запрошено резервирование с id: {}, для пользовтаеля с id: {}", bookingId, userId);
+            log.info("Запрошено резервирование с id: {}, для пользователя с id: {}", bookingId, userId);
             return modelMapper.map(booking, BookingDto.class);
         } else {
-            log.info("Запрещен просмотр резервирования с id: {}, для пользовтаеля с id: {}", bookingId, userId);
+            log.info("Запрещен просмотр резервирования с id: {}, для пользователя с id: {}", bookingId, userId);
             throw new BookingNotFoundException("Просмотр резервирования запрещен");
         }
     }
@@ -102,14 +101,31 @@ public class BookingServiceImpl implements BookingService {
         BookingState bookingState = getState(state);
         User user = getUser(userRepository, userId);
         log.info("Запрошены все собственные резервирования со статусом '{}' пользователя с id: {}", state, userId);
-        List<Booking> bookings = bookingRepository.findAllByBooker(userId);
-        if (bookings != null) {
-            bookings = filterByState(bookingState, bookings);
-            return bookings.stream()
-                    .map(booking -> modelMapper.map(booking, BookingDto.class))
-                    .collect(Collectors.toList());
+        List<Booking> bookings = new ArrayList<>();
+        switch (bookingState) {
+            case PAST:
+                bookings.addAll(bookingRepository.findAllPastByBooker(userId));
+                break;
+            case CURRENT:
+                bookings.addAll(bookingRepository.findAllCurrentByBooker(userId));
+                break;
+            case FUTURE:
+                bookings.addAll(bookingRepository.findAllFutureByBooker(userId));
+                break;
+            case REJECTED:
+                bookings.addAll(bookingRepository.findAllRejectedByBooker(userId));
+                break;
+            case WAITING:
+                bookings.addAll(bookingRepository.findAllWaitingByBooker(userId));
+                break;
+            default:
+                bookings.addAll(bookingRepository.findAllByBooker(userId));
+                break;
         }
-        return null;
+
+        return bookings.stream()
+                .map(booking -> modelMapper.map(booking, BookingDto.class))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -118,45 +134,31 @@ public class BookingServiceImpl implements BookingService {
         BookingState bookingState = getState(state);
         User user = getUser(userRepository, userId);
         log.info("Запрошены все резервирования со статусом '{}' для предметов пользователя с id: {}", state, userId);
-        List<Booking> bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
-        if (bookings != null) {
-            bookings = filterByState(bookingState, bookings);
-            return bookings.stream()
-                    .map(booking -> modelMapper.map(booking, BookingDto.class))
-                    .collect(Collectors.toList());
-        }
-        return null;
-    }
-
-    private List<Booking> filterByState(BookingState state, List<Booking> bookings) {
-        LocalDateTime now = LocalDateTime.now();
-        Stream<Booking> stream = bookings.stream();
-        switch (state) {
+        List<Booking> bookings = new ArrayList<>();
+        switch (bookingState) {
+            case PAST:
+                bookings.addAll(bookingRepository.findAllPastByOwner(userId));
+                break;
             case CURRENT:
-                stream = stream.filter(booking ->
-                        (booking.getStart().isBefore(now) && booking.getEnd().isAfter(now))
-                );
+                bookings.addAll(bookingRepository.findAllCurrentByOwner(userId));
                 break;
             case FUTURE:
-                stream = stream.filter(booking -> booking.getStart().isAfter(now));
-                break;
-            case WAITING:
-                stream = stream.filter(booking ->
-                        (booking.getStart().isAfter(now)
-                                && booking.getStatus() == BookingStatus.WAITING));
+                bookings.addAll(bookingRepository.findAllFutureByOwner(userId));
                 break;
             case REJECTED:
-                stream = stream.filter(booking ->
-                        booking.getStatus() == BookingStatus.CANCELED
-                                || booking.getStatus() == BookingStatus.REJECTED);
+                bookings.addAll(bookingRepository.findAllRejectedByOwner(userId));
                 break;
-            case PAST:
-                stream = stream.filter(booking -> booking.getEnd().isBefore(now));
+            case WAITING:
+                bookings.addAll(bookingRepository.findAllWaitingByOwner(userId));
                 break;
             default:
+                bookings.addAll(bookingRepository.findAllByOwner(userId));
                 break;
         }
-        return stream.collect(Collectors.toList());
+
+        return bookings.stream()
+                .map(booking -> modelMapper.map(booking, BookingDto.class))
+                .collect(Collectors.toList());
     }
 
     private BookingState getState(String state) {
