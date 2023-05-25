@@ -14,5 +14,5 @@ public interface UserService {
 
     Collection<UserDto> getAll();
 
-    UserDto remove(long id);
+    void remove(long id);
 }

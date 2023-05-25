@@ -2,18 +2,18 @@ package ru.practicum.shareit.user.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ValidationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.user.exception.UserEmailAlreadyExists;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
-public class UserErrorHadler {
+public class UserErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -37,9 +37,16 @@ public class UserErrorHadler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> constraintViolation(org.springframework.dao.DataIntegrityViolationException e) {
+        log.info("Такой email уже используется: {}", e.getMessage());
+        return Map.of("Такой email уже используется", e.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> userValidationFailed(org.springframework.web.bind.MethodArgumentNotValidException e) {
-        log.info("Ошибка валидации пользователя: {}", e.getMessage());
-        return Map.of("Ошибка валидации пользователя", e.getMessage());
+        log.info("Ошибка валидации: {}", e.getMessage());
+        return Map.of("Ошибка валидации ", e.getMessage());
     }
 }
