@@ -17,6 +17,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -24,8 +25,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.util.Util.getItem;
-import static ru.practicum.shareit.util.Util.getUser;
+import static ru.practicum.shareit.util.Util.*;
 
 @Slf4j
 @Service
@@ -40,12 +40,16 @@ public class ItemServiceImpl implements ItemService {
     private ModelMapper modelMapper;
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private ItemRequestRepository itemRequestRepository;
 
     @Override
     public ItemDto add(long userId, ItemDto itemDto) {
         User user = getUser(userRepository, userId);
         Item item = modelMapper.map(itemDto, Item.class);
         item.setOwner(user);
+        item.setRequest(itemDto.getRequestId() != null ?
+                getItemRequest(itemRequestRepository, itemDto.getRequestId()) : null);
         long itemId = itemRepository.save(item).getId();
         log.info("uid: {}, добавил item с id: {}", userId, itemId);
         itemDto.setId(itemId);
@@ -110,7 +114,7 @@ public class ItemServiceImpl implements ItemService {
             ItemDto itemDto = itemDtos.get(itemId);
             List<CommentDto> itemDtoComments = itemDto.getComments();
             if (itemDtoComments == null) {
-                itemDtoComments = new ArrayList<>();
+                itemDto.setComments(itemDtoComments = new ArrayList<>());
             }
             itemDtoComments.add(modelMapper.map(comment, CommentDto.class));
         }
