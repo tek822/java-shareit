@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingSimpleDto;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.Item;
 
 import javax.annotation.PostConstruct;
 
@@ -26,6 +28,10 @@ public class ShareItMapper {
                     mapper.map(src -> src.getAuthor().getName(), CommentDto::setAuthorName);
                     mapper.map(src -> src.getItem().getId(), CommentDto::setItemId);
                 }
+        );
+        modelMapper.createTypeMap(Item.class, ItemDto.class).addMappings(mapper -> {
+                    mapper.map(src -> src.getRequest() != null ? src.getRequest().getId() : null, ItemDto::setRequestId);
+            }
         );
     }
 }
