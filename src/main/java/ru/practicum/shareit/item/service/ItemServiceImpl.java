@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -48,8 +49,8 @@ public class ItemServiceImpl implements ItemService {
         User user = getUser(userRepository, userId);
         Item item = modelMapper.map(itemDto, Item.class);
         item.setOwner(user);
-        item.setRequest(itemDto.getRequestId() != null ?
-                getItemRequest(itemRequestRepository, itemDto.getRequestId()) : null);
+        item.setRequest(
+                itemDto.getRequestId() != null ? getItemRequest(itemRequestRepository, itemDto.getRequestId()) : null);
         long itemId = itemRepository.save(item).getId();
         log.info("uid: {}, добавил item с id: {}", userId, itemId);
         itemDto.setId(itemId);
@@ -85,11 +86,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<ItemDto> getAll(long userId) {
+    public Collection<ItemDto> getAll(long userId, int from, int size) {
         User user = getUser(userRepository, userId);
+        PageRequest page = PageRequest.of(from / size, size);
         log.info("Запрошены предметы пользователя с id: {}", userId);
         Map<Long, ItemDto> itemDtos = new HashMap<>();
-        for (Item item : itemRepository.findAllByUserId(userId)) {
+        for (Item item : itemRepository.findAllByUserId(userId, page)) {
             itemDtos.put(item.getId(), modelMapper.map(item, ItemDto.class));
         }
         List<Booking> bookings = bookingRepository.findAllByItemIdIn(itemDtos.keySet());
@@ -137,13 +139,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<ItemDto> findAvailable(String text) {
+    public Collection<ItemDto> findAvailable(String text, int from, int size) {
         log.info("Поиск предметов со строкой: {}", text);
         if (text == null || text.isBlank()) {
             return new ArrayList<>();
         }
+        PageRequest page = PageRequest.of(from / size, size);
         String lowerCase = text.toLowerCase();
-        return itemRepository.findAllByDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(lowerCase, lowerCase).stream()
+        return itemRepository.findAllByDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(lowerCase, lowerCase, page).stream()
                 .filter(i -> ((i.getAvailable() != null) && i.getAvailable()))
                 .map(i -> modelMapper.map(i, ItemDto.class))
                 .collect(Collectors.toList());

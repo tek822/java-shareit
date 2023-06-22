@@ -1,5 +1,6 @@
 package ru.practicum.shareit.mapper;
 
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,9 +30,13 @@ public class ShareItMapper {
                     mapper.map(src -> src.getItem().getId(), CommentDto::setItemId);
                 }
         );
-        modelMapper.createTypeMap(Item.class, ItemDto.class).addMappings(mapper -> {
-                    mapper.map(src -> src.getRequest() != null ? src.getRequest().getId() : null, ItemDto::setRequestId);
-            }
-        );
+
+        Converter<Item, Long> request2IdConverter = ctx -> ctx.getSource().getRequest() != null
+        ? ctx.getSource().getRequest().getId()
+        : null;
+
+        modelMapper.createTypeMap(Item.class, ItemDto.class).addMappings(mapper ->
+                mapper.using(request2IdConverter).map(src -> src, ItemDto::setRequestId));
     }
+
 }

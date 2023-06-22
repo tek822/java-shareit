@@ -10,6 +10,7 @@ import ru.practicum.shareit.item.exception.CommentBadRequestException;
 import ru.practicum.shareit.item.exception.UpdateForbiddenException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 
+import javax.validation.ConstraintViolationException;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -43,5 +44,12 @@ public class ItemErrorHandler {
     public Map<String, String> commentBadRequest(CommentBadRequestException e) {
         log.info("comment error: {}", e.getMessage());
         return Map.of("comment error", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> validationException(ConstraintViolationException e) {
+        log.info("pagination validation error: {}", e.getMessage());
+        return Map.of("pagination validation error", e.getMessage());
     }
 }

@@ -13,9 +13,9 @@ public interface ItemService {
 
     ItemDto get(long itemId, long userId);
 
-    Collection<ItemDto> getAll(long userId);
+    Collection<ItemDto> getAll(long userId, int from, int size);
 
-    Collection<ItemDto> findAvailable(String text);
+    Collection<ItemDto> findAvailable(String text, int from, int size);
 
     CommentDto addComment(long itemId, long userId, CommentDto commentDto);
 }

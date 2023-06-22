@@ -21,9 +21,9 @@ public class ItemRequestErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> itemRequestNotFound(ItemRequestNotFoundException e) {
-        log.info("BAD_REQUEST", e.getMessage());
-        return Map.of("BAD_REQUEST", e.getMessage());
+        log.info("NOT_FOUND", e.getMessage());
+        return Map.of("NOT_FOUND", e.getMessage());
     }
 }

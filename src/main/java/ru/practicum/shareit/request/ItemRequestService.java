@@ -6,11 +6,11 @@ import java.util.Collection;
 
 public interface ItemRequestService {
 
-    ItemRequestDto addItemRequest(long userId, ItemRequestDto itemRequestDto);
+    ItemRequestDto add(long userId, ItemRequestDto itemRequestDto);
 
-    Collection<ItemRequestDto> getOwnItemRequests(long userId);
+    Collection<ItemRequestDto> getOwn(long userId);
 
-    Collection<ItemRequestDto> getItemRequests(long userId, int from, int size);
+    Collection<ItemRequestDto> getAll(long userId, int from, int size);
 
-    ItemRequestDto getItemRequest(long userId, long itemRequestId);
+    ItemRequestDto get(long userId, long itemRequestId);
 }
