@@ -9,7 +9,6 @@ import ru.practicum.shareit.user.service.UserServiceImpl;
 import ru.practicum.shareit.util.Create;
 import ru.practicum.shareit.util.Update;
 
-import javax.validation.Valid;
 import java.util.Collection;
 
 @Slf4j
