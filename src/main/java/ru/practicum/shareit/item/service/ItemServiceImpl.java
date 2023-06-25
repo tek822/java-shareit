@@ -173,9 +173,9 @@ public class ItemServiceImpl implements ItemService {
         comment.setItem(item);
         comment.setCreated(now);
 
-        commentRepository.save(comment);
+        Comment reply = commentRepository.save(comment);
         log.info("Пользователь с id:{} создал комментарий к item с id:{}", userId, itemId);
-        return modelMapper.map(comment, CommentDto.class);
+        return modelMapper.map(reply, CommentDto.class);
     }
 
     @Transactional(readOnly = true)

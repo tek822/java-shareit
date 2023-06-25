@@ -1,4 +1,4 @@
-package ru.practicum.shareit.request.service;
+package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,13 +8,10 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.ItemRequest;
-import ru.practicum.shareit.request.ItemRequestRepository;
-import ru.practicum.shareit.request.ItemRequestServiceImpl;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
@@ -31,7 +28,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceImplTest {
     @Mock
@@ -115,6 +111,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
+    @Order(5)
     void addNewItemRequestTest() {
         when(userRepository.findById(2L)).thenReturn(Optional.of(requestor));
         when(itemRequestRepository.save(any(ItemRequest.class)))
@@ -130,5 +127,64 @@ class ItemRequestServiceImplTest {
 
         verify(userRepository, Mockito.times(1)).findById(requestor.getId());
         verify(itemRequestRepository, Mockito.times(1)).save(any(ItemRequest.class));
+    }
+
+    @Test
+    @Order(6)
+    void getAllWithWrongUidTest() {
+        int from = 0;
+        int size = 20;
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> itemRequestService.getAll(-1L, from, size));
+
+        verify(itemRequestRepository, never()).findAllByRequestorIdNotOrderByCreatedDesc(-1L, PageRequest.of(from / size, size));
+    }
+
+    @Test
+    @Order(7)
+    void getAllTest() {
+        int from = 0;
+        int size = 20;
+        PageRequest page = PageRequest.of(from / size, size);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(itemRequestRepository.findAllByRequestorIdNotOrderByCreatedDesc(owner.getId(), page)).thenReturn(List.of(itemRequest));
+
+        Collection<ItemRequestDto> requestDtos = itemRequestService.getAll(owner.getId(), from, size);
+
+        assertNotNull(requestDtos);
+        assertEquals(1L, requestDtos.size());
+        assertEquals(modelMapper.map(itemRequest, ItemRequestDto.class), requestDtos.iterator().next());
+
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(itemRequestRepository, times(1)).findAllByRequestorIdNotOrderByCreatedDesc(owner.getId(), page);
+    }
+
+    @Test
+    @Order(8)
+    void getWithWrongUidTest() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> itemRequestService.get(requestor.getId(), itemRequest.getId()));
+
+        verify(itemRequestRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    @Order(9)
+    void getTest() {
+        int from = 0;
+        int size = 20;
+        PageRequest page = PageRequest.of(from / size, size);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.of(itemRequest));
+
+        ItemRequestDto requestDto = itemRequestService.get(owner.getId(), itemRequest.getId());
+
+        assertNotNull(requestDto);
+        assertEquals(modelMapper.map(itemRequest, ItemRequestDto.class), requestDto);
+
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(itemRequestRepository, times(1)).findById(anyLong());
     }
 }

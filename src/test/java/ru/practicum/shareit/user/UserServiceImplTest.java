@@ -8,6 +8,8 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.test.context.ContextConfiguration;
+import ru.practicum.shareit.ShareItTestsConfiguration;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
@@ -26,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@ContextConfiguration(classes = {ShareItTestsConfiguration.class})
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
     @Mock

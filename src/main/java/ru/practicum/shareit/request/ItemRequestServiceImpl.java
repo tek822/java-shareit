@@ -67,7 +67,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         User user = getUser(userRepository, userId);
         log.info("Запрос itemRequest с id: {}, от пользователя с id: {}", itemRequestId, userId);
         ItemRequestDto itemRequestDto = modelMapper.map(getItemRequest(itemRequestRepository, itemRequestId), ItemRequestDto.class);
-        return getItemsForRequests(List.of(itemRequestDto)).stream().findAny().get();
+        return getItemsForRequests(List.of(itemRequestDto)).iterator().next();
     }
 
     private Collection<ItemRequestDto> getItemsForRequests(List<ItemRequestDto> requests) {
