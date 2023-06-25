@@ -13,6 +13,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -186,5 +187,17 @@ class ItemRequestServiceImplTest {
 
         verify(userRepository, times(1)).findById(anyLong());
         verify(itemRequestRepository, times(1)).findById(anyLong());
+    }
+
+    @Test
+    @Order(10)
+    void getWrongItemRequestIdTest() {
+        int from = 0;
+        int size = 20;
+        PageRequest page = PageRequest.of(from / size, size);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThrows(ItemRequestNotFoundException.class, () -> itemRequestService.get(owner.getId(), itemRequest.getId()));
     }
 }

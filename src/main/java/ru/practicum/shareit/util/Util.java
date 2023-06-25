@@ -15,10 +15,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 public class Util {
 
-    private Util() {
-        throw new IllegalStateException("Utility class");
-    }
-
     public static User getUser(UserRepository userRepository, long userId) {
         return userRepository.findById(userId).orElseThrow(
                 () -> new UserNotFoundException("Не найден пользователь с id:" + userId)

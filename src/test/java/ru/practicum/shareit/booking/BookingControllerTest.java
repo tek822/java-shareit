@@ -102,13 +102,13 @@ class BookingControllerTest {
 
         mockMvc.perform(post("/bookings")
                         .header("X-Sharer-User-Id", booker.getId())
-                        .content(mapper.writeValueAsString(null))
+                        .content(mapper.writeValueAsString(bookingSimpleDto))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
-        verify(bookingService, never()).add(anyLong(), any());
+        verify(bookingService, times(1)).add(anyLong(), any());
     }
 
     @Test

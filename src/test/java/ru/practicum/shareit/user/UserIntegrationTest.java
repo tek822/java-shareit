@@ -64,7 +64,7 @@ class UserIntegrationTest {
 
         assertThrows(org.springframework.dao.DataIntegrityViolationException.class, () -> userService.add(userDto),
                 "Почтовый адрес уже используется");
-        assertEquals(1L, userRepository.count(), "Должено быть 1 пользователь");
+        assertEquals(1L, userRepository.count(), "Должен быть 1 пользователь");
     }
 
     @Test
