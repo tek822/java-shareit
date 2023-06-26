@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -17,6 +18,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -24,8 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.util.Util.getItem;
-import static ru.practicum.shareit.util.Util.getUser;
+import static ru.practicum.shareit.util.Util.*;
 
 @Slf4j
 @Service
@@ -40,12 +41,16 @@ public class ItemServiceImpl implements ItemService {
     private ModelMapper modelMapper;
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private ItemRequestRepository itemRequestRepository;
 
     @Override
     public ItemDto add(long userId, ItemDto itemDto) {
         User user = getUser(userRepository, userId);
         Item item = modelMapper.map(itemDto, Item.class);
         item.setOwner(user);
+        item.setRequest(
+                itemDto.getRequestId() != null ? getItemRequest(itemRequestRepository, itemDto.getRequestId()) : null);
         long itemId = itemRepository.save(item).getId();
         log.info("uid: {}, добавил item с id: {}", userId, itemId);
         itemDto.setId(itemId);
@@ -81,11 +86,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<ItemDto> getAll(long userId) {
+    public Collection<ItemDto> getAll(long userId, int from, int size) {
         User user = getUser(userRepository, userId);
+        PageRequest page = PageRequest.of(from / size, size);
         log.info("Запрошены предметы пользователя с id: {}", userId);
         Map<Long, ItemDto> itemDtos = new HashMap<>();
-        for (Item item : itemRepository.findAllByUserId(userId)) {
+        for (Item item : itemRepository.findAllByUserId(userId, page)) {
             itemDtos.put(item.getId(), modelMapper.map(item, ItemDto.class));
         }
         List<Booking> bookings = bookingRepository.findAllByItemIdIn(itemDtos.keySet());
@@ -110,7 +116,7 @@ public class ItemServiceImpl implements ItemService {
             ItemDto itemDto = itemDtos.get(itemId);
             List<CommentDto> itemDtoComments = itemDto.getComments();
             if (itemDtoComments == null) {
-                itemDtoComments = new ArrayList<>();
+                itemDto.setComments(itemDtoComments = new ArrayList<>());
             }
             itemDtoComments.add(modelMapper.map(comment, CommentDto.class));
         }
@@ -133,13 +139,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<ItemDto> findAvailable(String text) {
+    public Collection<ItemDto> findAvailable(String text, int from, int size) {
         log.info("Поиск предметов со строкой: {}", text);
         if (text == null || text.isBlank()) {
             return new ArrayList<>();
         }
+        PageRequest page = PageRequest.of(from / size, size);
         String lowerCase = text.toLowerCase();
-        return itemRepository.findAllByDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(lowerCase, lowerCase).stream()
+        return itemRepository.findAllByDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(lowerCase, lowerCase, page).stream()
                 .filter(i -> ((i.getAvailable() != null) && i.getAvailable()))
                 .map(i -> modelMapper.map(i, ItemDto.class))
                 .collect(Collectors.toList());
@@ -166,9 +173,9 @@ public class ItemServiceImpl implements ItemService {
         comment.setItem(item);
         comment.setCreated(now);
 
-        commentRepository.save(comment);
+        Comment reply = commentRepository.save(comment);
         log.info("Пользователь с id:{} создал комментарий к item с id:{}", userId, itemId);
-        return modelMapper.map(comment, CommentDto.class);
+        return modelMapper.map(reply, CommentDto.class);
     }
 
     @Transactional(readOnly = true)

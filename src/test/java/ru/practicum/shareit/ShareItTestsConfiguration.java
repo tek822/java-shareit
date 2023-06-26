@@ -4,9 +4,8 @@ import org.modelmapper.Conditions;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingSimpleDto;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -14,14 +13,10 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
-import javax.inject.Inject;
-
-@Configuration
-@ComponentScan
-public class ShareItConfiguration {
+@TestConfiguration
+public class ShareItTestsConfiguration {
 
     @Bean
-    @Inject
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
 

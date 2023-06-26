@@ -6,15 +6,14 @@ import ru.practicum.shareit.booking.exception.BookingNotFoundException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 public class Util {
-
-    private Util() {
-        throw new IllegalStateException("Utility class");
-    }
 
     public static User getUser(UserRepository userRepository, long userId) {
         return userRepository.findById(userId).orElseThrow(
@@ -31,6 +30,12 @@ public class Util {
     public static Booking getBooking(BookingRepository bookingRepository, long bookingId) {
         return bookingRepository.findById(bookingId).orElseThrow(
                 () -> new BookingNotFoundException("Не найдено резервирование с id:" + bookingId)
+        );
+    }
+
+    public static ItemRequest getItemRequest(ItemRequestRepository itemRequestRepository, long itemRequestId) {
+        return itemRequestRepository.findById(itemRequestId).orElseThrow(
+                () -> new ItemRequestNotFoundException("Не найден запрос с id:" + itemRequestId)
         );
     }
 }

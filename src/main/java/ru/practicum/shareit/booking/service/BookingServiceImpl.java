@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.service;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -97,29 +98,30 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingDto> getOwnBookings(long userId, String state) {
+    public List<BookingDto> getOwnBookings(long userId, String state, int from, int size) {
         BookingState bookingState = getState(state);
         User user = getUser(userRepository, userId);
+        PageRequest page = PageRequest.of(from / size, size);
         log.info("Запрошены все собственные резервирования со статусом '{}' пользователя с id: {}", state, userId);
         List<Booking> bookings = new ArrayList<>();
         switch (bookingState) {
             case PAST:
-                bookings.addAll(bookingRepository.findAllPastByBooker(userId));
+                bookings.addAll(bookingRepository.findAllPastByBooker(userId, page));
                 break;
             case CURRENT:
-                bookings.addAll(bookingRepository.findAllCurrentByBooker(userId));
+                bookings.addAll(bookingRepository.findAllCurrentByBooker(userId, page));
                 break;
             case FUTURE:
-                bookings.addAll(bookingRepository.findAllFutureByBooker(userId));
+                bookings.addAll(bookingRepository.findAllFutureByBooker(userId, page));
                 break;
             case REJECTED:
-                bookings.addAll(bookingRepository.findAllRejectedByBooker(userId));
+                bookings.addAll(bookingRepository.findAllRejectedByBooker(userId, page));
                 break;
             case WAITING:
-                bookings.addAll(bookingRepository.findAllWaitingByBooker(userId));
+                bookings.addAll(bookingRepository.findAllWaitingByBooker(userId, page));
                 break;
             default:
-                bookings.addAll(bookingRepository.findAllByBooker(userId));
+                bookings.addAll(bookingRepository.findAllByBooker(userId, page));
                 break;
         }
 
@@ -130,29 +132,30 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingDto> getBookingsForOwnItems(long userId, String state) {
+    public List<BookingDto> getBookingsForOwnItems(long userId, String state, int from, int size) {
         BookingState bookingState = getState(state);
         User user = getUser(userRepository, userId);
+        PageRequest page = PageRequest.of(from / size, size);
         log.info("Запрошены все резервирования со статусом '{}' для предметов пользователя с id: {}", state, userId);
         List<Booking> bookings = new ArrayList<>();
         switch (bookingState) {
             case PAST:
-                bookings.addAll(bookingRepository.findAllPastByOwner(userId));
+                bookings.addAll(bookingRepository.findAllPastByOwner(userId, page));
                 break;
             case CURRENT:
-                bookings.addAll(bookingRepository.findAllCurrentByOwner(userId));
+                bookings.addAll(bookingRepository.findAllCurrentByOwner(userId, page));
                 break;
             case FUTURE:
-                bookings.addAll(bookingRepository.findAllFutureByOwner(userId));
+                bookings.addAll(bookingRepository.findAllFutureByOwner(userId, page));
                 break;
             case REJECTED:
-                bookings.addAll(bookingRepository.findAllRejectedByOwner(userId));
+                bookings.addAll(bookingRepository.findAllRejectedByOwner(userId, page));
                 break;
             case WAITING:
-                bookings.addAll(bookingRepository.findAllWaitingByOwner(userId));
+                bookings.addAll(bookingRepository.findAllWaitingByOwner(userId, page));
                 break;
             default:
-                bookings.addAll(bookingRepository.findAllByOwner(userId));
+                bookings.addAll(bookingRepository.findAllByOwner(userId, page));
                 break;
         }
 

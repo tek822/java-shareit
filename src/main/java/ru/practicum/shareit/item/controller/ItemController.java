@@ -2,17 +2,21 @@ package ru.practicum.shareit.item.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 
 @Slf4j
 @RestController
 @RequestMapping("/items")
+@Validated
 public class ItemController {
     @Autowired
     private ItemService itemService;
@@ -49,14 +53,22 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getAllItems(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public Collection<ItemDto> getAllItems(@RequestHeader("X-Sharer-User-Id") long userId,
+                                           @PositiveOrZero(message = "Ошибка пагинации, from >= 0")
+                                           @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+                                           @Positive(message = "Ошибка пагинации, size > 0")
+                                           @RequestParam(name = "size", required = false, defaultValue = "20") int size) {
         log.info("GET запрос для всех предметов");
-        return itemService.getAll(userId);
+        return itemService.getAll(userId, from, size);
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> findAvailableItems(@RequestParam(name = "text") String text) {
+    public Collection<ItemDto> findAvailableItems(@RequestParam(name = "text") String text,
+                                                  @PositiveOrZero(message = "Ошибка пагинации, from >= 0")
+                                                  @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+                                                  @Positive(message = "Ошибка пагинации, size > 0")
+                                                  @RequestParam(name = "size", required = false, defaultValue = "20") int size) {
         log.info("GET запрос на поиск с text: {}", text);
-        return itemService.findAvailable(text);
+        return itemService.findAvailable(text, from, size);
     }
 }

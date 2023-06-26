@@ -4,10 +4,6 @@ import java.time.LocalDateTime;
 
 public class BookingValidator {
 
-   private BookingValidator() {
-        throw new IllegalStateException("Utility class");
-    }
-
     public static boolean isValid(BookingSimpleDto bookingSimpleDto) {
         return !(isNull(bookingSimpleDto)
                 || isEndBeforeStart(bookingSimpleDto)
