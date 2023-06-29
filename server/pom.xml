@@ -92,10 +92,10 @@
             <id>coverage</id>
             <build>
                 <plugins>
-                    <!--plugin>
+                    <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                    </plugin-->
+                    </plugin>
                 </plugins>
             </build>
         </profile>

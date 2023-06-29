@@ -6,6 +6,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.user.controller.UserController;
@@ -49,6 +50,20 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id", is(userDto1.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(userDto1.getName())))
                 .andExpect(jsonPath("$.email", is(userDto1.getEmail())));
+
+        verify(userService).add(userDto1);
+    }
+
+    @Test
+    void userCreateWithDuplicateEmailTest() throws Exception {
+        when(userService.add(any(UserDto.class))).thenThrow(new DataIntegrityViolationException("Такой email уже используется"));
+
+        mockMvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(userDto1))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
 
         verify(userService).add(userDto1);
     }
@@ -120,6 +135,22 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id", is(userDto1.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(update.getName())))
                 .andExpect(jsonPath("$.email", is(userDto1.getEmail())));
+
+        verify(userService, Mockito.times(1)).update(update);
+    }
+
+    @Test
+    void updateUserEmailWithDuplicateTest() throws Exception {
+        UserDto update = new UserDto(userDto1.getId(), "updatedName", userDto1.getEmail());
+
+        when(userService.update(any(UserDto.class))).thenThrow(new DataIntegrityViolationException("Такой email уже используется"));
+
+        mockMvc.perform(patch("/users/1")
+                        .content(mapper.writeValueAsString(update))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
 
         verify(userService, Mockito.times(1)).update(update);
     }

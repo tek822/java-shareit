@@ -183,8 +183,6 @@ class ItemControllerTest {
         verify(itemClient, never()).findAvailableItems(anyLong(), anyString(), anyInt(), anyInt());
     }
 
-
-
     @Test
     void addCommentValidationTest() throws Exception {
         CommentDto commentDto = new CommentDto(null, "", itemDto.getId(), "comment author", null);
@@ -199,5 +197,18 @@ class ItemControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(itemClient, never()).addComment(anyLong(), anyLong(), any(CommentDto.class));
+    }
+
+    @Test
+    void addItemWithotXSarerUserIdHeaderTest() throws Exception {
+
+        mockMvc.perform(post("/items")
+                        .content(mapper.writeValueAsString(itemDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(itemClient, never()).addItem(anyLong(), any(ItemDto.class));
     }
 }

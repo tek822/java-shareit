@@ -10,6 +10,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.exception.CommentBadRequestException;
+import ru.practicum.shareit.item.exception.UpdateForbiddenException;
 import ru.practicum.shareit.item.service.ItemServiceImpl;
 
 import java.nio.charset.StandardCharsets;
@@ -92,6 +94,24 @@ class ItemControllerTest {
     }
 
     @Test
+    void updateItemForbiddenTest() throws Exception {
+        itemDto.setName("UpdatedName");
+        when(itemService.update(anyLong(), any(ItemDto.class)))
+                .thenThrow(new UpdateForbiddenException("только владелец может обновлять данные предмета"));
+
+        mockMvc.perform(patch("/items/1")
+                        .header("X-Sharer-User-Id", uid + 1)
+                        .content(mapper.writeValueAsString(itemDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+        verify(itemService, times(1)).update(anyLong(), any(ItemDto.class));
+        itemDto.setName("Item1");
+    }
+
+    @Test
     void getItemsTest() throws Exception {
         ItemDto itemDto2 = new ItemDto(2L, "Item2", "Item2 description", false, null, null, null, null);
         when(itemService.getAll(anyLong(), anyInt(), anyInt())).thenReturn(List.of(itemDto, itemDto2));
@@ -140,6 +160,23 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.itemId", is(itemDto.getId()), Long.class))
                 .andExpect(jsonPath("$.text", is(commentDto.getText())));
+
+        verify(itemService, times(1)).addComment(anyLong(), anyLong(), any(CommentDto.class));
+    }
+
+    @Test
+    void addCommentWithoutBookingTest() throws Exception {
+        CommentDto commentDto = new CommentDto(null, "comment text", itemDto.getId(), "comment author", null);
+        when(itemService.addComment(anyLong(), anyLong(), any(CommentDto.class)))
+                .thenThrow(new CommentBadRequestException("Пользователь может комментировать предмет только после успешного заказа"));
+
+        mockMvc.perform(post("/items/1/comment")
+                        .header("X-Sharer-User-Id", uid)
+                        .content(mapper.writeValueAsString(commentDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
 
         verify(itemService, times(1)).addComment(anyLong(), anyLong(), any(CommentDto.class));
     }

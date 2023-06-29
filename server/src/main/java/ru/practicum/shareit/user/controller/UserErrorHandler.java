@@ -26,11 +26,4 @@ public class UserErrorHandler {
         log.info("Такой email уже используется: {}", e.getMessage());
         return Map.of("Такой email уже используется", e.getMessage());
     }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> userValidationFailed(org.springframework.web.bind.MethodArgumentNotValidException e) {
-        log.info("Ошибка валидации: {}", e.getMessage());
-        return Map.of("Ошибка валидации ", e.getMessage());
-    }
 }

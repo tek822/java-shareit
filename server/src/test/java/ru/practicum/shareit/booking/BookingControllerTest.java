@@ -14,6 +14,7 @@ import ru.practicum.shareit.ShareItTestsConfiguration;
 import ru.practicum.shareit.booking.controller.BookingController;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingSimpleDto;
+import ru.practicum.shareit.booking.exception.BookingBadRequestException;
 import ru.practicum.shareit.booking.exception.BookingNotFoundException;
 import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -143,6 +144,20 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.item.id", is(itemDto.getId()), Long.class))
                 .andExpect(jsonPath("$.booker.id", is(booker.getId()), Long.class))
                 .andExpect(jsonPath("$.status", is("APPROVED")));
+
+        verify(bookingService, times(1)).approve(booking.getId(), owner.getId(), false);
+    }
+
+    @Test
+    void approveBookingWithWrongStateTest() throws Exception {
+        when(bookingService.approve(booking.getId(), owner.getId(), false)).thenThrow(new BookingBadRequestException(""));
+
+        mockMvc.perform(patch("/bookings/1?approved=false")
+                        .header("X-Sharer-User-Id", owner.getId())
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
 
         verify(bookingService, times(1)).approve(booking.getId(), owner.getId(), false);
     }
