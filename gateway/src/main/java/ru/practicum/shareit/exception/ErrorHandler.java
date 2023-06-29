@@ -14,6 +14,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class ErrorHandler {
     private static final String MESSAGE = "validation error";
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> validationError(ValidationException e) {
