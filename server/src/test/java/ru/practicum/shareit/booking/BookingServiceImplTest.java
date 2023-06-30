@@ -246,13 +246,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getOwnBookingsWrongStateTest() {
-        String state = "APPROVED";
-
-        assertThrows(BookingBadRequestException.class, () -> bookingService.getOwnBookings(booker.getId(), state, from, size));
-    }
-
-    @Test
     void getBookingsForOwnItemsTest() {
         String state = "ALL";
         when(userRepository.findById(any())).thenReturn(Optional.of(owner));

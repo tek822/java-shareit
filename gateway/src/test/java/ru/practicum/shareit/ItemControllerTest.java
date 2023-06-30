@@ -184,6 +184,34 @@ class ItemControllerTest {
     }
 
     @Test
+    void validationSearchItemEmptyStringTest() throws Exception {
+
+        mockMvc.perform(get("/items/search?text=&from=0&size=20")
+                        .header("X-Sharer-User-Id", uid)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+
+        verify(itemClient, never()).findAvailableItems(anyLong(), anyString(), anyInt(), anyInt());
+    }
+
+    @Test
+    void validationSearchItemNullStringTest() throws Exception {
+
+        mockMvc.perform(get("/items/search?from=0&size=20")
+                        .header("X-Sharer-User-Id", uid)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+
+        verify(itemClient, never()).findAvailableItems(anyLong(), anyString(), anyInt(), anyInt());
+    }
+
+    @Test
     void addCommentValidationTest() throws Exception {
         CommentDto commentDto = new CommentDto(null, "", itemDto.getId(), "comment author", null);
         when(itemClient.addComment(anyLong(), anyLong(), any(CommentDto.class))).thenReturn(ResponseEntity.ok(null));
@@ -200,7 +228,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void addItemWithotXSarerUserIdHeaderTest() throws Exception {
+    void addItemWithoutXSharerUserIdHeaderTest() throws Exception {
 
         mockMvc.perform(post("/items")
                         .content(mapper.writeValueAsString(itemDto))

@@ -55,6 +55,7 @@ public class BookingController {
                                  @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                  @Positive(message = "Ошибка пагинации, size > 0")
                                  @RequestParam(name = "size", required = false, defaultValue = "20") int size) {
+        validateState(state);
         log.info("GET запрос собственных бронирований пользователя с id: {}, state: {}", userId, state);
         return bookingClient.getOwnBookings(userId, state, from, size);
     }
@@ -66,7 +67,16 @@ public class BookingController {
                                     @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                     @Positive(message = "Ошибка пагинации, size > 0")
                                     @RequestParam(name = "size", required = false, defaultValue = "20") int size) {
+        validateState(state);
         log.info("GET запрос бронирований предметов пользователя с id: {}, state: {}", userId, state);
         return bookingClient.getBookingsForOwnItems(userId, state, from, size);
+    }
+
+    private void validateState(String state) {
+        try {
+            BookingState.valueOf(state);
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException("Unknown state: " + state);
+        }
     }
 }

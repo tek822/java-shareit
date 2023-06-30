@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -61,12 +64,15 @@ public class ItemController {
 
     @GetMapping("/search")
     public ResponseEntity<Object> findAvailableItems(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                 @RequestParam(name = "text") String text,
+                                                 @RequestParam(name = "text", required = false) String text,
                                                  @PositiveOrZero(message = "Ошибка пагинации, from >= 0")
                                                  @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                                  @Positive(message = "Ошибка пагинации, size > 0")
                                                  @RequestParam(name = "size", required = false, defaultValue = "20") int size) {
         log.info("GET запрос на поиск с text: {}", text);
+        if (text == null || text.isBlank()) {
+            return ResponseEntity.ok(List.of());
+        }
         return itemClient.findAvailableItems(userId, text, from, size);
     }
 }

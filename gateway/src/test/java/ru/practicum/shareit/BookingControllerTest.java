@@ -18,12 +18,15 @@ import ru.practicum.shareit.user.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -169,5 +172,45 @@ class BookingControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(bookingClient, never()).addBooking(anyLong(), any());
+    }
+
+    @Test
+    void getBookingsNullStateValidationTest() throws Exception {
+        when(bookingClient.getOwnBookings(booker.getId(), "ALL", 0, 20)).thenReturn(ResponseEntity.ok(List.of(bookingDto)));
+
+        mockMvc.perform(get("/bookings/")
+                .header("X-Sharer-User-Id", booker.getId())
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(bookingDto.getId()), Long.class));
+
+        verify(bookingClient, times(1)).getOwnBookings(booker.getId(), "ALL", 0, 20);
+    }
+
+    @Test
+    void getBookingsWrongStateValidationTest() throws Exception {
+               mockMvc.perform(get("/bookings/?state=WrOnG")
+                        .header("X-Sharer-User-Id", booker.getId())
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(bookingClient, never()).getOwnBookings(anyLong(), anyString(), anyInt(), anyInt());
+    }
+
+    @Test
+    void getOwnerBookingsWrongStateValidationTest() throws Exception {
+        mockMvc.perform(get("/bookings/owner?state=WrOnG")
+                        .header("X-Sharer-User-Id", owner.getId())
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(bookingClient, never()).getOwnBookings(anyLong(), anyString(), anyInt(), anyInt());
     }
 }

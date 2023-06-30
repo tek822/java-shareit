@@ -96,7 +96,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<BookingDto> getOwnBookings(long userId, String state, int from, int size) {
-        BookingState bookingState = getState(state);
+        BookingState bookingState = BookingState.valueOf(state);
         User user = getUser(userRepository, userId);
         PageRequest page = PageRequest.of(from / size, size);
         log.info("Запрошены все собственные резервирования со статусом '{}' пользователя с id: {}", state, userId);
@@ -130,7 +130,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<BookingDto> getBookingsForOwnItems(long userId, String state, int from, int size) {
-        BookingState bookingState = getState(state);
+        BookingState bookingState = BookingState.valueOf(state);
         User user = getUser(userRepository, userId);
         PageRequest page = PageRequest.of(from / size, size);
         log.info("Запрошены все резервирования со статусом '{}' для предметов пользователя с id: {}", state, userId);
@@ -159,15 +159,5 @@ public class BookingServiceImpl implements BookingService {
         return bookings.stream()
                 .map(booking -> modelMapper.map(booking, BookingDto.class))
                 .collect(Collectors.toList());
-    }
-
-    private BookingState getState(String state) {
-        BookingState bookingState;
-        try {
-            bookingState = BookingState.valueOf(state);
-        } catch (IllegalArgumentException e) {
-            throw new BookingBadRequestException("Unknown state: " + state);
-        }
-        return  bookingState;
     }
 }

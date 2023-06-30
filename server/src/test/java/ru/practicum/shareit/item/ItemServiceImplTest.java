@@ -316,18 +316,6 @@ class ItemServiceImplTest {
     }
 
     @Test
-    @Order(13)
-    void findAvailableNullAndEmptyStrigTest() {
-        Collection<ItemDto> items = itemService.findAvailable(null, 0, 20);
-        assertNotNull(items);
-        assertEquals(0L, items.size());
-
-        items = itemService.findAvailable(null, 0, 20);
-        assertNotNull(items);
-        assertEquals(0L, items.size());
-    }
-
-    @Test
     @Order(14)
     void findAvailableTest() {
         String text = "test";

@@ -141,9 +141,6 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     public Collection<ItemDto> findAvailable(String text, int from, int size) {
         log.info("Поиск предметов со строкой: {}", text);
-        if (text == null || text.isBlank()) {
-            return new ArrayList<>();
-        }
         PageRequest page = PageRequest.of(from / size, size);
         String lowerCase = text.toLowerCase();
         return itemRepository.findAllByDescriptionContainingIgnoreCaseOrNameContainingIgnoreCase(lowerCase, lowerCase, page).stream()
@@ -158,10 +155,9 @@ public class ItemServiceImpl implements ItemService {
         User user = getUser(userRepository, userId);
         LocalDateTime now = LocalDateTime.now();
         if (bookingRepository.findAllByBooker(userId).stream()
-                        .filter(booking -> booking.getEnd().isBefore(now))
-                        .filter(booking -> booking.getStatus() == BookingStatus.APPROVED)
-                        .collect(Collectors.toList())
-                        .isEmpty()) {
+                .filter(booking -> booking.getEnd().isBefore(now))
+                .filter(booking -> booking.getStatus() == BookingStatus.APPROVED)
+                .count() == 0) {
             log.info("Пользователь с id:{} не может комментировать item с id:{}", userId, itemId);
             throw new CommentBadRequestException(
                     String.format("Пользователь с id:%d не может комментировать item с id:%d", userId, itemId));

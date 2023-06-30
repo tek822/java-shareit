@@ -30,7 +30,7 @@ services:
     ports:
     - "8080:8080"
     depends_on:
-    - "shareit-server"
+    - shareit-server
     environment:
       - SHAREIT_SERVER_URL=http://shareit-server:9090
 #      - TZ=Europe/Moscow
